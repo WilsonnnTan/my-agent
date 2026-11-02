@@ -1,9 +1,9 @@
-use async_openai::Client;
 use clap::Parser;
 use serde_json::{Value, json};
 use my_agent::{
   config::Config,
-  tools::ToolCall
+  tools::ToolCall,
+  openai::client::LlmClient,
 };
 
 #[derive(Parser)]
@@ -19,40 +19,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let config = Config::load();
 
-  let client = Client::with_config(config.open_ai_config);
+  let llm_client = LlmClient::new(&config);
 
-  #[allow(unused_variables)]
-  let response: Value = client
-    .chat()
-    .create_byot(json!({
-      "messages": [
-        {
-            "role": "user",
-            "content": args.prompt
-        }
-      ],
-      "model": config.model,
-      "tools": [
-        {
-          "type": "function",
-          "function": {
-            "name": "Read",
-            "description": "Read and return the contents of a file",
-            "parameters": {
-              "type": "object",
-              "properties": {
-                "file_path": {
-                  "type": "string",
-                  "description": "The path to the file to read"
-                }
-              },
-              "required": ["file_path"]
-            }
-          }
-        }
-      ],
-    }))
-    .await?;
+  let mut messages: Vec<Value> = Vec::new();
+
+  messages.push(json!(
+    {
+      "role": "user",
+      "content": args.prompt,
+    }
+  ));
+
+  let response: Value = llm_client.chat(&messages).await?;
 
   let data: serde_json::Value = serde_json::from_value(response)?;
   // println!("{:#?}", data);

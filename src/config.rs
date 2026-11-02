@@ -1,12 +1,13 @@
-use async_openai::{config::OpenAIConfig};
 use dotenvy::dotenv;
 use std::env;
 use anyhow::Result;
 
 #[derive(Debug, Clone)]
 pub struct Config {
-  /// OpenAIConfig with base_url and api_key
-  pub open_ai_config: OpenAIConfig,
+  /// OpenAI Compatible Provider `BASE_URL`
+  pub base_url: String,
+  /// OpenAI Compatible Provider `API_KEY`
+  pub api_key: String,
   /// Model name
   pub model: String,
 }
@@ -23,13 +24,9 @@ impl Config {
       std::process::exit(1);
     });
 
-    // Construct OpenAIConfig
-    let open_ai_config = OpenAIConfig::new()
-                          .with_api_base(var.0)
-                          .with_api_key(var.1);
-    
     Self {
-      open_ai_config: open_ai_config,
+      base_url: var.0,
+      api_key: var.1,
       model: var.2
     }
   }
