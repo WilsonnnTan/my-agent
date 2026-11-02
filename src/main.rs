@@ -55,7 +55,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
               "content": output,
             }
           ));
-          println!("{}", output);
         },
         Err(e) => eprintln!("failed to call a tool: {}", e),
       }

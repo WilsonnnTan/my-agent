@@ -14,7 +14,7 @@ pub fn response_tool_calls_parser(response: &Value) -> Result<Vec<ToolCall>> {
                             .filter(|arr| !arr.is_empty())
   {
     for tool_call_field in tool_calls {
-      // check src/tools/mod.rs for clone() reasoning
+      // PERF: can be improved by moving mem instead of copy
       let tool_call: ToolCall = serde_json::from_value(tool_call_field.clone())?;
       parsed_tool_calls.push(tool_call);
     } 

@@ -33,17 +33,17 @@ impl Config {
 
   /// Loads configuration from the .env files (not from process environment).
   pub fn load_from_env() -> Result<(String, String, String)> {
-    dotenv()?;
+    if let Err(_) = dotenv() {}
 
-    let base_url = env::var("BASE_URL")
+    let base_url = env::var("OPENROUTER_BASE_URL")
                     .unwrap_or_else(|_| {
-                      eprintln!("BASE_URL is not set");
+                      eprintln!("OPENROUTER_BASE_URL is not set");
                       std::process::exit(1);
                     });
 
-    let api_key = env::var("API_KEY")
+    let api_key = env::var("OPENROUTER_API_KEY")
                     .unwrap_or_else(|_| {
-                      eprintln!("API_KEY is not set");
+                      eprintln!("OPENROUTER_API_KEY is not set");
                       std::process::exit(1);
                     });
 

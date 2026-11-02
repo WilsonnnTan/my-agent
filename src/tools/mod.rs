@@ -22,12 +22,7 @@ trait Tool {
 ///   }
 /// ]
 /// ```
-/// 
-/// The reason String is used instead of &str,
-/// because the program need to keep track of the `ToolCall.id`
-/// and using agent loop, response will perish on each loop
-/// and ToolCall is extracted from response
-/// so at the end we need to copy it.
+// PERF: can be improved by using borrow
 #[derive(Deserialize)]
 pub struct ToolCall{
   pub id: String,
