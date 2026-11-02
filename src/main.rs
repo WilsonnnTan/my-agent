@@ -14,6 +14,15 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Args::parse();
+  
+  // use free model from openrouter for local
+  // use anthropic claude haiku 4.5 for codecrafters test runner
+  let is_local = env::var("IS_LOCAL").is_ok_and(|v| v == "true");
+  let model: &str = if is_local {
+    "nvidia/nemotron-3-ultra-550b-a55b:free"
+  } else {
+    "anthropic/claude-haiku-4.5"
+  };
 
   let base_url = env::var("OPENROUTER_BASE_URL")
     .unwrap_or_else(|_| "https://openrouter.ai/api/v1".to_string());
@@ -39,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "content": args.prompt
         }
       ],
-      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "model": model,
       "tools": [
         {
           "type": "function",
