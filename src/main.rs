@@ -70,32 +70,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .and_then(|tool_calls| tool_calls.as_array())
                             .filter(|arr| !arr.is_empty())
   {
-    for tool_call in tool_calls {
-      let name = tool_call
+    for tool_call_field in tool_calls {
+      let tool_type = tool_call_field
+                        .pointer("/type")
+                        .and_then(|name| name.as_str())
+                        .ok_or_else(|| "tool_call missing type")?;
+
+      let name = tool_call_field
                   .pointer("/function/name")
                   .and_then(|name| name.as_str())
                   .ok_or_else(|| "tool_call missing name")?;
 
-      let arguments = tool_call
+      let arguments = tool_call_field
                   .pointer("/function/arguments")
                   .and_then(|arguments| arguments.as_str())
                   .ok_or_else(|| "tool_call missing arguments")?;
             
-      let args: Value = serde_json::from_str(arguments)?;
-
-      let file_path = args
-                  .pointer("/file_path")
-                  .and_then(|path| path.as_str())
-                  .ok_or_else(|| "arguments missing file_path")?;
-
-      use my_agent::tools::read_file::ReadFile;
-      use my_agent::tools::Run;
-      ReadFile::run(file_path);
+      use my_agent::tools::ToolCall;
+      let tool_call = ToolCall::new(tool_type, name, arguments);
+      match tool_call.call() {
+        Ok(output) => { 
+          // this println can be deleted later after agent loop is implemented
+          println!("{}", output);
+        },
+        Err(e) => eprintln!("failed to call a tool: {}", e),
+      }
     }
   }
-
-  // You can use print statements as follows for debugging, they'll be visible when running tests.
-  eprintln!("Logs from your program will appear here!");
 
   // TODO: Uncomment the lines below to pass the first stage
   if let Some(content) = data["choices"][0]["message"]["content"].as_str() {
