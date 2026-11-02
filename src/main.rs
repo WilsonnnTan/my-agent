@@ -72,7 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
   let data: serde_json::Value = serde_json::from_value(response)?;
-  println!("{:#?}", data);
+  // println!("{:#?}", data);
 
   if let Some(tool_calls) = data
                             .pointer("/choices/0/message/tool_calls")
