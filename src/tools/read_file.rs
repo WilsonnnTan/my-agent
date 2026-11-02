@@ -13,8 +13,8 @@ pub struct ReadFile<'a> {
 impl<'a> Tool for ReadFile<'a> {
   fn run(&self) -> Result<String> {
     let mut file = OpenOptions::new()
-                                  .read(true)
-                                  .open(self.file_path)?;
+                    .read(true)
+                    .open(self.file_path)?;
 
     let mut data: String = String::new();
     let _ = file.read_to_string(&mut data);

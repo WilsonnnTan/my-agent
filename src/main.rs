@@ -1,8 +1,10 @@
-use async_openai::{Client, config::OpenAIConfig};
+use async_openai::Client;
 use clap::Parser;
 use serde_json::{Value, json};
-use std::{env, process};
-use serde_json;
+use my_agent::{
+  config::Config,
+  tools::ToolCall
+};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -14,29 +16,10 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Args::parse();
-  
-  // use free model from openrouter for local
-  // use anthropic claude haiku 4.5 for codecrafters test runner
-  let is_local = env::var("IS_LOCAL").is_ok_and(|v| v == "true");
-  let model: &str = if is_local {
-    "nvidia/nemotron-3-ultra-550b-a55b:free"
-  } else {
-    "anthropic/claude-haiku-4.5"
-  };
 
-  let base_url = env::var("OPENROUTER_BASE_URL")
-    .unwrap_or_else(|_| "https://openrouter.ai/api/v1".to_string());
+  let config = Config::load();
 
-  let api_key = env::var("OPENROUTER_API_KEY").unwrap_or_else(|_| {
-    eprintln!("OPENROUTER_API_KEY is not set");
-    process::exit(1);
-  });
-
-  let config = OpenAIConfig::new()
-    .with_api_base(base_url)
-    .with_api_key(api_key);
-
-  let client = Client::with_config(config);
+  let client = Client::with_config(config.open_ai_config);
 
   #[allow(unused_variables)]
   let response: Value = client
@@ -48,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "content": args.prompt
         }
       ],
-      "model": model,
+      "model": config.model,
       "tools": [
         {
           "type": "function",
@@ -94,8 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                   .pointer("/function/arguments")
                   .and_then(|arguments| arguments.as_str())
                   .ok_or_else(|| "tool_call missing arguments")?;
-            
-      use my_agent::tools::ToolCall;
+
       let tool_call = ToolCall::new(tool_type, name, arguments);
       match tool_call.call() {
         Ok(output) => { 
