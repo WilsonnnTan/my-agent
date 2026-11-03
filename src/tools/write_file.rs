@@ -1,7 +1,8 @@
-use std::path::Path;
 use std::{
   fs::OpenOptions,
   io::Write,
+  borrow::Cow,
+  path::Path,
 };
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -10,27 +11,31 @@ use schemars::{schema_for, JsonSchema};
 use super::Tool;
 use super::spec::Spec;
 
+/// use Cow to avoid unnecessary memory allocation
+/// Cow also allow mem allocation when the value of the str contains escaped character
 #[derive(Deserialize, JsonSchema)]
 pub struct WriteFile<'a> {
   /// The path to the file to write to
-  file_path: &'a str,
+  #[serde(borrow)]
+  file_path: Cow<'a, str>,
   /// The content to write to the file
-  content: &'a str,
+  #[serde(borrow)]
+  content: Cow<'a, str>,
 }
 
 impl<'a> Tool for WriteFile<'a> {
   fn run(&self) -> Result<String> {
-    let is_exist = Path::new(self.file_path).exists();
+    let is_exist = Path::new(&*self.file_path).exists();
 
     let mut file = OpenOptions::new()
                     .create(true)
                     .truncate(true)
                     .write(true)
-                    .open(self.file_path)?;
+                    .open(&*self.file_path)?;
 
     file.write_all(self.content.as_bytes())?;
 
-    Ok(String::from(format!("{} {} {}", is_exist, self.file_path, self.content.len())))
+    Ok(String::from(format!("{} {} {}", is_exist, &*self.file_path, self.content.len())))
   }
 }
 

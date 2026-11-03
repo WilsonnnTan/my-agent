@@ -1,6 +1,7 @@
 use std::{
   fs::OpenOptions,
   io::Read,
+  borrow::Cow,
 };
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -11,15 +12,16 @@ use super::spec::Spec;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct ReadFile<'a> {
-  /// The path to the file to read
-  file_path: &'a str,
+  /// The path to the file to write to
+  #[serde(borrow)]
+  file_path: Cow<'a, str>,
 }
 
 impl<'a> Tool for ReadFile<'a> {
   fn run(&self) -> Result<String> {
     let mut file = OpenOptions::new()
                     .read(true)
-                    .open(self.file_path)?;
+                    .open(&*self.file_path)?;
 
     let mut data: String = String::new();
     let _ = file.read_to_string(&mut data);

@@ -17,7 +17,7 @@ trait Tool {
 /// "tool_calls": [
 ///   {
 ///     "id": "call_abc123",
-///    "type": "function",
+///     "type": "function",
 ///     "function": {
 ///       "name": "Read",
 ///       "arguments": "{\"file_path\": \"/path/to/file.txt\"}"
@@ -26,6 +26,9 @@ trait Tool {
 /// ]
 /// ```
 ///
+// Use Cow to decode the escaped character on `function.arguments`
+// Why? because `function.arguments` is a JSON string
+// which is the reason why it will have escaped character
 // PERF: can be improved by using borrow
 #[derive(Deserialize)]
 pub struct ToolCall{
