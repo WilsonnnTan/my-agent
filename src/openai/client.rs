@@ -2,6 +2,7 @@ use async_openai::{Client, config::OpenAIConfig};
 use serde_json::{Value, json};
 use super::super::config::Config;
 use anyhow::Result;
+use super::super::tools::spec::TOOLS_SPEC;
 
 pub struct LlmClient<'a> {
   /// openai client
@@ -25,28 +26,10 @@ impl<'a> LlmClient<'a> {
   pub async fn chat(&self, messages: &Vec<Value>) -> Result<Value>{
     let response: Value = self.client
       .chat()
-      .create_byot(json!({
+      .create_byot(json!({ // PERF: can be improved by not using json! since it deep copy tools spec again and again
         "messages": messages,
         "model": self.model,
-        "tools": [
-          {
-            "type": "function",
-            "function": {
-              "name": "Read",
-              "description": "Read and return the contents of a file",
-              "parameters": {
-                "type": "object",
-                "properties": {
-                  "file_path": {
-                    "type": "string",
-                    "description": "The path to the file to read"
-                  }
-                },
-                "required": ["file_path"]
-              }
-            }
-          }
-        ],
+        "tools": &*TOOLS_SPEC,
       })).await?;
     Ok(response)
   }

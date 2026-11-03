@@ -1,4 +1,5 @@
 pub mod read_file;
+pub mod spec;
 
 use read_file::ReadFile;
 use anyhow::{Result, bail};
