@@ -7,9 +7,13 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use anyhow::Result;
 use schemars::{schema_for, JsonSchema};
-use super::Tool;
-use super::spec::Spec;
+use super::{
+  Tool,
+  spec::Spec,
+};
 
+// use Cow to avoid unnecessary memory allocation
+// Cow also allow mem allocation when the value of the str contains escaped character
 #[derive(Deserialize, JsonSchema)]
 pub struct ReadFile<'a> {
   /// The path to the file to write to

@@ -3,6 +3,7 @@ use serde_json::Value;
 use super::{
   read_file::ReadFile,
   write_file::WriteFile,
+  bash::Bash,
 };
 use std::sync::LazyLock;
 
@@ -13,9 +14,10 @@ pub trait Spec {
 }
 
 /// `TOOLS` contains the list of tools spec exist in this project
-pub static TOOLS_SPEC: LazyLock<[Value; 2]> = LazyLock::new(|| {
+pub static TOOLS_SPEC: LazyLock<[Value; 3]> = LazyLock::new(|| {
   [
     ReadFile::spec(),
     WriteFile::spec(),
+    Bash::spec(),
   ]
 });
