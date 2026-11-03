@@ -1,5 +1,6 @@
 use async_openai::{Client, config::OpenAIConfig};
-use serde_json::{Value, json};
+use serde::Serialize;
+use serde_json::Value;
 use super::super::config::Config;
 use anyhow::Result;
 use super::super::tools::spec::TOOLS_SPEC;
@@ -9,6 +10,16 @@ pub struct LlmClient<'a> {
   client: Client<OpenAIConfig>,
   /// Model name
   model: &'a str,
+}
+
+#[derive(Serialize)]
+pub struct ChatRequest<'a> {
+  /// List of messages including history
+  messages: &'a Vec<Value>,
+  /// Model name
+  model: &'a str,
+  /// List of tool's spec
+  tools: &'a [Value],
 }
 
 impl<'a> LlmClient<'a> {
@@ -26,11 +37,13 @@ impl<'a> LlmClient<'a> {
   pub async fn chat(&self, messages: &Vec<Value>) -> Result<Value>{
     let response: Value = self.client
       .chat()
-      .create_byot(json!({ // PERF: can be improved by not using json! since it deep copy tools spec again and again
-        "messages": messages,
-        "model": self.model,
-        "tools": &*TOOLS_SPEC,
-      })).await?;
+      .create_byot(
+        ChatRequest {
+          messages: messages,
+          model: self.model,
+          tools: &*TOOLS_SPEC,
+        }
+      ).await?;
     Ok(response)
   }
 }

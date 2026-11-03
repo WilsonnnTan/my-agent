@@ -23,6 +23,7 @@ trait Tool {
 ///   }
 /// ]
 /// ```
+///
 // PERF: can be improved by using borrow
 #[derive(Deserialize)]
 pub struct ToolCall{
