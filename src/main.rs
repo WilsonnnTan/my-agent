@@ -28,11 +28,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   ));
 
   loop {
+    // UNCOMMENT: for debug
+    // println!("{:#?}", messages);
     let response: Value = llm_client.chat(&messages).await?;
 
     // push AI response to messages to keep track of conversation
-    if let Some(message) = response.pointer("/choices/0/message") {
-      messages.push(message.clone());
+    if let Some(ai_message) = response.pointer("/choices/0/message") {
+      messages.push(ai_message.clone());
     }
 
     let tool_calls = response_tool_calls_parser(&response)?;
@@ -46,18 +48,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     for tool_call in tool_calls {
+      let mut tool_message: Value = json!(
+        {
+          "role": "tool",
+        }
+      );
+
       match tool_call.call() {
         Ok(output) => {
-          messages.push(json!(
-            {
-              "role": "tool",
-              "tool_call_id": tool_call.id,
-              "content": output,
-            }
-          ));
+          tool_message["content"] = output.into();
         },
-        Err(e) => eprintln!("failed to call a tool: {}", e),
+        Err(e) => {
+          let error_message = format!("failed to call {} tool: {}", tool_call.function.name, e);
+          eprintln!("{}", error_message);
+          tool_message["content"] = error_message.into();
+        },
       }
+
+      tool_message["tool_call_id"] = tool_call.id.into();
+      messages.push(tool_message);
     }
   }
 

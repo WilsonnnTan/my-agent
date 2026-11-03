@@ -1,7 +1,9 @@
 pub mod read_file;
+pub mod write_file;
 pub mod spec;
 
 use read_file::ReadFile;
+use write_file::WriteFile;
 use anyhow::{Result, bail};
 use serde::Deserialize;
 
@@ -28,14 +30,14 @@ trait Tool {
 #[derive(Deserialize)]
 pub struct ToolCall{
   pub id: String,
-  r#type: String,
-  function: Function,
+  pub r#type: String,
+  pub function: Function,
 }
 
 #[derive(Deserialize)]
 pub struct Function {
-  name: String,
-  arguments: String,
+  pub name: String,
+  pub arguments: String,
 }
 
 impl ToolCall {
@@ -52,11 +54,15 @@ impl ToolCall {
 
   pub fn call(&self) -> Result<String>{
     match (self.r#type.as_str(), self.function.name.as_str()) {
-      ("function", "Read") => {
+      ("function", "ReadFile") => {
         let tool: ReadFile = serde_json::from_str(self.function.arguments.as_str())?;
         tool.run()
       },
-      _ => { bail!(format!("{} tool doesn't exist in current program", self.function.name))},
+      ("function", "WriteFile") => {
+        let tool: WriteFile = serde_json::from_str(self.function.arguments.as_str())?;
+        tool.run()
+      },
+      _ => { bail!(format!("{} tool doesn't exist in current agent", self.function.name))},
     }
   }
 }

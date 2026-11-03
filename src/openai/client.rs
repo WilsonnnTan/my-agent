@@ -12,7 +12,7 @@ pub struct LlmClient<'a> {
   model: &'a str,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ChatRequest<'a> {
   /// List of messages including history
   messages: &'a Vec<Value>,
@@ -44,6 +44,7 @@ impl<'a> LlmClient<'a> {
           tools: &*TOOLS_SPEC,
         }
       ).await?;
+
     Ok(response)
   }
 }

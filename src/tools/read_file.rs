@@ -40,7 +40,7 @@ impl<'a> Spec for ReadFile<'a> {
       {
         "type": "function",
         "function": {
-          "name": "Read",
+          "name": "ReadFile",
           "description": "Read and return the contents of a file",
         }
       }
