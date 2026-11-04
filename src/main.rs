@@ -3,7 +3,7 @@ use serde_json::{Value, json};
 use my_agent::{
   config::Config,
   openai::client::LlmClient,
-  openai::response_tool_calls_parser
+  tools::parser::response_tool_calls_parser
 };
 
 #[derive(Parser)]

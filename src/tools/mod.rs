@@ -2,6 +2,7 @@ pub mod read_file;
 pub mod write_file;
 pub mod bash;
 pub mod spec;
+pub mod parser;
 
 use read_file::ReadFile;
 use write_file::WriteFile;
