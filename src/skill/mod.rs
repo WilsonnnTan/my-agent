@@ -55,7 +55,11 @@ pub fn load_skills() -> Result<HashMap<String, Skill>> {
                 .open(&skill_file)?;
 
       let mut skill_content = String::new();
-      let _ = f.read_to_string(&mut skill_content);
+      f.read_to_string(&mut skill_content)?;
+      
+      // Replace \r\n to \n to handle CRLF (Carriage Return Line Feed) on windows
+      #[cfg(windows)]
+      let skill_content = skill_content.replace("\r\n", "\n");
 
       // Parse skill content
       let skill = parse_skill(skill_file, &skill_content)?;
@@ -72,7 +76,7 @@ pub fn load_skills() -> Result<HashMap<String, Skill>> {
 pub fn parse_skill<'a>(skill_file: PathBuf, file_content: &'a str) -> Result<Skill> {
   let convention_error = || { anyhow!(
                           "{} doesn't have proper skill format.
-                          check skill file's convention on: https://agentskills.io/specification",
+  check skill file's convention on: https://agentskills.io/specification",
                           skill_file.display()
                         )};
 

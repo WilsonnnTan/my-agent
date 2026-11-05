@@ -28,7 +28,7 @@ impl<'a> Tool for ReadFile<'a> {
                     .open(&*self.file_path)?;
 
     let mut data: String = String::new();
-    let _ = file.read_to_string(&mut data);
+    file.read_to_string(&mut data)?;
 
     return Ok(data);
   }
