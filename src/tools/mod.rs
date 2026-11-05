@@ -1,14 +1,32 @@
 pub mod read_file;
 pub mod write_file;
 pub mod bash;
-pub mod spec;
-pub mod parser;
 
 use read_file::ReadFile;
 use write_file::WriteFile;
 use bash::Bash;
 use anyhow::{Result, bail};
 use serde::Deserialize;
+use serde_json::Value;
+use std::sync::LazyLock;
+
+
+/// Parse tool_calls field on AI response
+pub fn response_tool_calls_parser(response: &Value) -> Result<Vec<ToolCall>> {
+  let mut parsed_tool_calls: Vec<ToolCall> = Vec::new();
+
+  if let Some(tool_calls) = response
+                            .pointer("/choices/0/message/tool_calls")
+                            .and_then(|tool_calls| tool_calls.as_array())
+                            .filter(|arr| !arr.is_empty())
+  {
+    for tool_call_field in tool_calls {
+      let tool_call: ToolCall = serde_json::from_value(tool_call_field.clone())?;
+      parsed_tool_calls.push(tool_call);
+    }
+  }
+  Ok(parsed_tool_calls)
+}
 
 trait Tool {
   fn run(&self) -> Result<String>;
@@ -76,3 +94,19 @@ impl ToolCall {
     }
   }
 }
+
+
+/// Make sure spec() implementation uses unwrap
+/// so the program doesn't run if there is error on tool's spec
+pub trait Spec {
+  fn spec() -> Value;
+}
+
+/// `TOOLS` contains the list of tools spec exist in this project
+pub static TOOLS_SPEC: LazyLock<[Value; 3]> = LazyLock::new(|| {
+  [
+    ReadFile::spec(),
+    WriteFile::spec(),
+    Bash::spec(),
+  ]
+});

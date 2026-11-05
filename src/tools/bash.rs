@@ -9,7 +9,7 @@ use anyhow::{Result, Context};
 use schemars::{schema_for, JsonSchema};
 use super::{
   Tool,
-  spec::Spec,
+  Spec,
 };
 
 // use Cow to avoid unnecessary memory allocation

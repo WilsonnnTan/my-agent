@@ -4,7 +4,7 @@ use my_agent::{
   config::Config,
   openai::client::LlmClient,
   skill::{skills_advertisement, load_skills},
-  tools::parser::response_tool_calls_parser,
+  tools::response_tool_calls_parser,
 };
 
 #[derive(Parser)]
