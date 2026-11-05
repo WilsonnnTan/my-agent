@@ -24,6 +24,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let skills = load_skills()?;
   let skills_ad = skills_advertisement(&skills);
 
+  // parse prompt (check for skill invocation)
+  let prompt: &str = args.prompt
+                .strip_prefix("/")
+                .and_then(|name| skills.get(name))
+                .and_then(|skill| skill.content.as_deref())
+                .unwrap_or(&args.prompt);
+
   // Track messages session
   let mut messages: Vec<Value> = Vec::new();
   messages.push(json!(
@@ -35,13 +42,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   messages.push(json!(
     {
       "role": "user",
-      "content": args.prompt,
+      "content": prompt,
     }
   ));
 
   loop {
-    // UNCOMMENT: for debug
-    // println!("{:#?}", messages);
     let response: Value = llm_client.chat(&messages).await?;
 
     // push AI response to messages to keep track of conversation
@@ -81,6 +86,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
       messages.push(tool_message);
     }
   }
+
+  // UNCOMMENT: for debug
+  // println!("{:#?}", messages);
 
   Ok(())
 }
