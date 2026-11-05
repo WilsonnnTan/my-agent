@@ -18,3 +18,4 @@ anyhow = "1.0.104"
 serde = { version = "1.0.229", features = ["derive"] }
 dotenvy = "0.15.7"
 schemars = "1.2.3"
+serde_yaml = "0.9.34"

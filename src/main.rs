@@ -3,7 +3,8 @@ use serde_json::{Value, json};
 use my_agent::{
   config::Config,
   openai::client::LlmClient,
-  tools::parser::response_tool_calls_parser
+  skill::{skills_advertisement, load_skills},
+  tools::parser::response_tool_calls_parser,
 };
 
 #[derive(Parser)]
@@ -19,7 +20,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let config = Config::load();
   let llm_client = LlmClient::new(&config);
 
+  // Load skills
+  let skills = load_skills()?;
+  let skills_ad = skills_advertisement(&skills);
+
+  // Track messages session
   let mut messages: Vec<Value> = Vec::new();
+  messages.push(json!(
+    {
+      "role": "system",
+      "content": skills_ad,
+    }
+  ));
   messages.push(json!(
     {
       "role": "user",
