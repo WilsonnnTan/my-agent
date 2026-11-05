@@ -5,6 +5,7 @@ use my_agent::{
   openai::client::LlmClient,
   skill::{skills_advertisement, load_skills},
   tools::response_tool_calls_parser,
+  prompt::parse_prompt,
 };
 
 #[derive(Parser)]
@@ -24,12 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let skills = load_skills()?;
   let skills_ad = skills_advertisement(&skills);
 
-  // parse prompt (check for skill invocation)
-  let prompt: &str = args.prompt
-                .strip_prefix("/")
-                .and_then(|name| skills.get(name))
-                .and_then(|skill| skill.content.as_deref())
-                .unwrap_or(&args.prompt);
+  let prompt = parse_prompt(&args.prompt, &skills);
 
   // Track messages session
   let mut messages: Vec<Value> = Vec::new();
