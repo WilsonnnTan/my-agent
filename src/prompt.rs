@@ -12,15 +12,14 @@ pub fn parse_prompt<'a>(prompt: String, skills: &'a HashMap<String, Skill>) -> S
 
   // Skill invocation
   while let Some(arg) = args.peek() {
-    let invoked_skill: Option<&str> = arg
+    let invoked_skill: Option<&Skill> = arg
                   .strip_prefix("/")
-                  .and_then(|name| skills.get(name))
-                  .and_then(|skill| skill.content.as_deref());
+                  .and_then(|name| skills.get(name));
     
     match invoked_skill {
       Some(s) => {
         have_invoked_skill = true;
-        parsed_prompt.push_str(s);
+        parsed_prompt.push_str(&s.get_skill_content());
         parsed_prompt.push('\n');
         args.next();
       },

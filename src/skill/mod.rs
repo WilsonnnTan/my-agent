@@ -35,6 +35,7 @@ pub fn load_skills() -> Result<HashMap<String, Skill>> {
   // call validator (to validate each field format)
   let mut map: HashMap<String, Skill> = HashMap::new();
 
+  // TODO: update to not only read the current project skills
   let skill_dirs: [PathBuf; 2] = [
     PathBuf::from(".agents/skills/"),
     PathBuf::from(".claude/skills/")
@@ -138,8 +139,23 @@ impl Skill {
   /// source: https://agentskills.io/specification#progressive-disclosure
   pub fn get_metadata(&self) -> String {
     match &self.file_path {
-      Some(file_path) => format!("- {}: {} (path: {})", self.name, self.description, file_path.display()),
+      Some(file_path) => format!("- {}: {} (located at {})", self.name, self.description, file_path.display()),
       None => format!("- {}: {}", self.name, self.description),
     }
+  }
+
+  /// Get skill content with skill name and path in it
+  pub fn get_skill_content(&self) -> String {
+    let mut skill_content = String::new();
+
+    if let Some(file_path) = &self.file_path {
+      let name_with_file_path = format!("Skill: {} (located at {})", &self.name, &file_path.to_string_lossy());
+      skill_content.push_str(&name_with_file_path);      
+    }
+    if let Some(content) = &self.content {
+      skill_content.push_str(content);
+    }
+
+    skill_content
   }
 }

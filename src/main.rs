@@ -27,6 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let prompt = parse_prompt(args.prompt, &skills);
 
+  // dbg!(&prompt);
+
   // Track messages session
   let mut messages: Vec<Value> = Vec::new();
   messages.push(json!(
