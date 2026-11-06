@@ -8,7 +8,7 @@ use super::skill::Skill;
 pub fn parse_prompt<'a>(prompt: String, skills: &'a HashMap<String, Skill>) -> String {
   let mut parsed_prompt: String = String::new();
   let mut args = prompt.split_whitespace().peekable();
-  let mut have_invoked_skill: bool = false; // flag for replace_args trigger
+  let mut have_invoked_skill: bool = false; // flag for replace_args trigger or same prompt
 
   // Skill invocation
   while let Some(arg) = args.peek() {
@@ -33,7 +33,9 @@ pub fn parse_prompt<'a>(prompt: String, skills: &'a HashMap<String, Skill>) -> S
       let args: Vec<&str> = args.collect(); // scrap the rest of the args
       parsed_prompt = replace_args(parsed_prompt, args);
     },
-    false => {},
+    false => {
+      parsed_prompt = prompt;
+    },
   }
 
   parsed_prompt
