@@ -1,7 +1,8 @@
-pub mod read_file;
-pub mod write_file;
-pub mod bash;
-pub mod invoke_skill;
+mod read_file;
+mod write_file;
+mod bash;
+mod invoke_skill;
+mod prelude;
 
 use read_file::ReadFile;
 use write_file::WriteFile;
@@ -30,7 +31,7 @@ pub fn response_tool_calls_parser(response: &Value) -> Result<Vec<ToolCall>> {
   Ok(parsed_tool_calls)
 }
 
-trait Tool {
+pub(crate) trait Tool {
   fn run(&self) -> Result<String>;
 }
 
@@ -104,12 +105,12 @@ impl ToolCall {
 
 /// Make sure spec() implementation uses unwrap
 /// so the program doesn't run if there is error on tool's spec
-pub trait Spec {
+pub(crate) trait Spec {
   fn spec() -> Value;
 }
 
 /// `TOOLS` contains the list of tools spec exist in this project
-pub static TOOLS_SPEC: LazyLock<[Value; 4]> = LazyLock::new(|| {
+pub(crate) static TOOLS_SPEC: LazyLock<[Value; 4]> = LazyLock::new(|| {
   [
     ReadFile::spec(),
     WriteFile::spec(),

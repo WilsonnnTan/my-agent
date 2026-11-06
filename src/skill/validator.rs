@@ -7,23 +7,23 @@
 
 // source: https://agentskills.io/specification
 
-pub fn validate_name() {
+pub(super) fn validate_name() {
   // match the requirement and the name must match with parent dir
   todo!()
 }
 
-pub fn validate_description() {
+pub(super) fn validate_description() {
   todo!()
 }
 
-pub fn validate_license() {
+pub(super) fn validate_license() {
   todo!()
 }
 
-pub fn validate_compatibility() {
+pub(super) fn validate_compatibility() {
   todo!()
 }
 
-pub fn validate_metadata() {
+pub(super) fn validate_metadata() {
   todo!()
 }

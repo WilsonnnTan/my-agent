@@ -1,21 +1,10 @@
-use std::{
-  borrow::Cow,
-};
-use serde::Deserialize;
-use serde_json::{json, Value};
-use anyhow::Result;
-use schemars::{schema_for, JsonSchema};
-
-use super::{
-  Tool,
-  Spec,
-};
-use super::super::skill::skill_loader::SkillLoader;
+use super::prelude::*;
+use crate::skill::skill_loader::SkillLoader;
 
 // use Cow to avoid unnecessary memory allocation
 // Cow also allow mem allocation when the value of the str contains escaped character
 #[derive(Deserialize, JsonSchema)]
-pub struct InvokeSkill<'a> {
+pub(crate) struct InvokeSkill<'a> {
   /// The name of the skill to use
   #[serde(borrow)]
   name: Cow<'a, str>,

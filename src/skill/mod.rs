@@ -1,4 +1,4 @@
-pub mod validator;
+mod validator;
 pub mod skill_loader;
 
 use serde::Deserialize;
@@ -45,23 +45,23 @@ pub struct Skill {
 }
 
 impl Skill {
-  pub fn set_content(&mut self, content: String) {
+  fn set_content(&mut self, content: String) {
     self.content = Some(content);
   }
 
-  pub fn set_file_path(&mut self, file_path: PathBuf) {
+  fn set_file_path(&mut self, file_path: PathBuf) {
     self.file_path = Some(file_path);
   }
 
   /// This is a method to validate the format of Skill
   /// source: https://agentskills.io/specification
-  pub fn validate_format(&self) {
+  fn validate_format(&self) {
     todo!()
   }
 
   /// This is a method to get the Metadata (name, description, and path) of the skill
   /// source: https://agentskills.io/specification#progressive-disclosure
-  pub fn get_metadata(&self) -> String {
+  pub(crate) fn get_metadata(&self) -> String {
     match &self.file_path {
       Some(file_path) => format!("- {}: {} (located at {})", self.name, self.description, file_path.display()),
       None => format!("- {}: {}", self.name, self.description),
@@ -70,7 +70,7 @@ impl Skill {
 
   /// This is a method to get skill content
   /// with name, path, and replaced args in it
-  pub fn get_skill_content(&self, args: &[&str]) -> String {
+  pub(crate) fn get_skill_content(&self, args: &[&str]) -> String {
     let mut skill_content = String::new();
 
     if let Some(file_path) = &self.file_path {
@@ -87,7 +87,7 @@ impl Skill {
   /// Implement args replacement on invoked skill
   /// source: https://code.claude.com/docs/en/skills#available-string-substitutions
   /// BUG: doesnt cover edge cases such as $11 matched with pattern $1
-  pub fn replace_args(content: String, args: &[&str]) -> String {
+  pub(crate) fn replace_args(content: String, args: &[&str]) -> String {
     let mut result: String = content;
 
     let mut counter = 0; // args counter

@@ -1,21 +1,14 @@
+use super::prelude::*;
 use std::{
   fs::OpenOptions,
   io::Read,
-  borrow::Cow,
 };
-use serde::Deserialize;
-use serde_json::{json, Value};
-use anyhow::Result;
-use schemars::{schema_for, JsonSchema};
-use super::{
-  Tool,
-  Spec,
-};
+
 
 // use Cow to avoid unnecessary memory allocation
 // Cow also allow mem allocation when the value of the str contains escaped character
 #[derive(Deserialize, JsonSchema)]
-pub struct ReadFile<'a> {
+pub(crate) struct ReadFile<'a> {
   /// The path to the file to write to
   #[serde(borrow)]
   file_path: Cow<'a, str>,

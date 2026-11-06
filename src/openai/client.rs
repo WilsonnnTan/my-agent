@@ -1,9 +1,14 @@
-use async_openai::{Client, config::OpenAIConfig};
+use async_openai::{
+  Client,
+  config::OpenAIConfig
+};
 use serde::Serialize;
 use serde_json::Value;
-use super::super::config::Config;
 use anyhow::Result;
-use super::super::tools::TOOLS_SPEC;
+use crate::{
+  config::Config,
+  tools::TOOLS_SPEC,
+};
 
 pub struct LlmClient<'a> {
   /// openai client
@@ -13,7 +18,7 @@ pub struct LlmClient<'a> {
 }
 
 #[derive(Serialize, Debug)]
-pub struct ChatRequest<'a> {
+struct ChatRequest<'a> {
   /// List of messages including history
   messages: &'a Vec<Value>,
   /// Model name

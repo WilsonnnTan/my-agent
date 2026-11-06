@@ -1,21 +1,15 @@
+use super::prelude::*;
 use std::{
   str,
-  borrow::Cow,
   process::Command,
 };
-use serde::Deserialize;
-use serde_json::{json, Value};
-use anyhow::{Result, Context};
-use schemars::{schema_for, JsonSchema};
-use super::{
-  Tool,
-  Spec,
-};
+use anyhow::Context;
+
 
 // use Cow to avoid unnecessary memory allocation
 // Cow also allow mem allocation when the value of the str contains escaped character
 #[derive(Deserialize, JsonSchema)]
-pub struct Bash<'a> {
+pub(crate) struct Bash<'a> {
   /// The command to execute
   #[serde(borrow)]
   command: Cow<'a, str>,

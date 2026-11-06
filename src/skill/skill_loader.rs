@@ -83,6 +83,7 @@ impl SkillLoader {
 
     skill.set_content(String::from(&file_content[end+4..]));
     skill.set_file_path(skill_file);
+    // skill.validate_format();
 
     Ok(skill)
   }
