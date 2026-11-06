@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let skills = load_skills()?;
   let skills_ad = skills_advertisement(&skills);
 
-  let prompt = parse_prompt(&args.prompt, &skills);
+  let prompt = parse_prompt(args.prompt, &skills);
 
   // Track messages session
   let mut messages: Vec<Value> = Vec::new();
