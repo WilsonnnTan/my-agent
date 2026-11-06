@@ -5,59 +5,40 @@ use super::skill::Skill;
 /// Parse prompt:
 /// - Skill invocation
 /// - Pass arguments to a skill
-pub fn parse_prompt<'a>(prompt: String, skills: &'a HashMap<String, Skill>) -> String {
+pub fn parse_prompt(prompt: String, skills: &HashMap<String, Skill>) -> String {
   let mut parsed_prompt: String = String::new();
+
   let mut args = prompt.split_whitespace().peekable();
-  let mut have_invoked_skill: bool = false; // flag for replace_args trigger or same prompt
+  let mut invoked_skills: Vec<&Skill> = Vec::new(); // store list of skills that got invoked
 
   // Skill invocation
   while let Some(arg) = args.peek() {
-    let invoked_skill: Option<&Skill> = arg
+    let invoked: Option<&Skill> = arg
                   .strip_prefix("/")
                   .and_then(|name| skills.get(name));
     
-    match invoked_skill {
+    match invoked {
       Some(s) => {
-        have_invoked_skill = true;
-        parsed_prompt.push_str(&s.get_skill_content());
-        parsed_prompt.push('\n');
+        invoked_skills.push(s);
         args.next();
       },
       None => { break },
     }
   }
 
-  match have_invoked_skill {
-    true => {
-      let args: Vec<&str> = args.collect(); // scrap the rest of the args
-      parsed_prompt = replace_args(parsed_prompt, args);
-    },
+  match invoked_skills.is_empty() {
+    true => parsed_prompt = prompt,
     false => {
-      parsed_prompt = prompt;
+      let args: Vec<&str> = args.collect(); // scrap the rest of the args
+      
+      // Push skill's content that is formatted and replaced with args
+      for skill in invoked_skills {
+        parsed_prompt.push_str(&skill.get_skill_content(&args));
+        parsed_prompt.push('\n');
+      }
     },
+
   }
 
   parsed_prompt
-}
-
-
-/// Implement args replacement on invoked skill
-/// source: https://code.claude.com/docs/en/skills#available-string-substitutions
-pub fn replace_args<'a>(invoked_skill: String, args: Vec<&str>) -> String {
-  let mut result = invoked_skill;
-  let mut counter = 0; // args counter
-
-  let pattern_target_0 = "$ARGUMENTS";
-  result = result.replace(pattern_target_0, &args.join(" "));
-
-  for arg in args {
-    let pattern_target_1 = format!("$ARGUMENTS[{}]", counter);
-    let pattern_target_2 = format!("${}", counter);
-    result = result
-              .replace(&pattern_target_1, arg)
-              .replace(&pattern_target_2, arg);
-    counter += 1;
-  }
-
-  result
 }

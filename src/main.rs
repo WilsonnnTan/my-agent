@@ -3,7 +3,7 @@ use serde_json::{Value, json};
 use my_agent::{
   config::Config,
   openai::client::LlmClient,
-  skill::{skills_advertisement, load_skills},
+  skill::{skills_advertisement, skill_loader::SkillLoader},
   tools::response_tool_calls_parser,
   prompt::parse_prompt,
 };
@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let llm_client = LlmClient::new(&config);
 
   // Load skills
-  let skills = load_skills()?;
+  let skills = SkillLoader::load_skills()?;
   let skills_ad = skills_advertisement(&skills);
 
   let prompt = parse_prompt(args.prompt, &skills);
