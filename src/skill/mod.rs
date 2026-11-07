@@ -78,7 +78,7 @@ impl Skill {
       skill_content.push_str(&name_with_file_path);      
     }
     if let Some(content) = &self.content {
-      skill_content.push_str(&Self::replace_args(content.to_string(), args));
+      skill_content.push_str(&Self::replace_args(content, args));
     }
 
     skill_content
@@ -86,23 +86,43 @@ impl Skill {
 
   /// Implement args replacement on invoked skill
   /// source: https://code.claude.com/docs/en/skills#available-string-substitutions
-  /// BUG: doesnt cover edge cases such as $11 matched with pattern $1
-  pub(crate) fn replace_args(content: String, args: &[&str]) -> String {
-    let mut result: String = content;
+  pub(crate) fn replace_args(content: &str, args: &[&str]) -> String {
+    let mut result: String = String::new();
 
-    let mut counter = 0; // args counter
+    let mut content = content;
 
+    let regex_pattern = regex::Regex::new(r#"^\$ARGUMENTS\[(\d+)\]|^\$(\d+)|^\$ARGUMENTS"#).unwrap();
 
-    for arg in args {
-      let pattern_target_1 = format!("$ARGUMENTS[{}]", counter);
-      let pattern_target_2 = format!("${}", counter);
-      result = result
-                .replace(&pattern_target_1, arg)
-                .replace(&pattern_target_2, arg);
-      counter += 1;
+    while let Some(start_idx) = content.find("$") {
+      result.push_str(&content[..start_idx]);
+      content = &content[start_idx..]; // slice to take unprocessed string
+
+      if let Some(caps) = regex_pattern.captures(content) {
+        let end = caps.get(0).unwrap().end();
+
+        match (caps.get(1), caps.get(2)) {
+          // $ARGUMENTS[m] or $m
+          (Some(m), _) | (None, Some(m)) => {
+            let idx: usize = m.as_str().parse().unwrap_or(usize::MAX);
+            result.push_str(args.get(idx).unwrap_or(&""));
+          },
+          // $ARGUMENTS
+          (None, None) => {
+            let concated_args: String = args.join(" ");
+            result.push_str(&concated_args);
+          },
+        }
+
+        content = &content[end..];
+      } else {
+        // Covering case when there is '$' but doesnt match the regex_pattern
+        // This will help to avoid infinite loop
+        result.push('$');
+        content = &content[1..];
+      }
     }
 
-    result = result.replace("$ARGUMENTS", &args.join(" "));
+    result.push_str(content);
 
     result
   }
