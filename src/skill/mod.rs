@@ -3,7 +3,7 @@ pub mod skill_loader;
 
 use serde::Deserialize;
 use std::{
-  collections::HashMap, path::PathBuf,
+  collections::HashMap, path::PathBuf, sync::LazyLock,
 };
 
 
@@ -22,6 +22,13 @@ pub fn skills_advertisement(skills: &HashMap<String, Skill>) -> String{
 
   advertisement
 }
+
+
+/// Regex for arguments replacement on skill's content
+static ARGS_RE: LazyLock<regex::Regex> = LazyLock::new(|| {
+  regex::Regex::new(r"^\$ARGUMENTS\[(\d+)\]|^\$(\d+)|^\$ARGUMENTS")
+    .expect("failed to compile args regex")
+});
 
 
 /// A parsed skill definition that deserialized with serde_yaml.
@@ -43,6 +50,7 @@ pub struct Skill {
   /// The file path to the skill file
   pub file_path: Option<PathBuf>,
 }
+
 
 impl Skill {
   fn set_content(&mut self, content: String) {
@@ -91,13 +99,11 @@ impl Skill {
 
     let mut content = content;
 
-    let regex_pattern = regex::Regex::new(r#"^\$ARGUMENTS\[(\d+)\]|^\$(\d+)|^\$ARGUMENTS"#).unwrap();
-
     while let Some(start_idx) = content.find("$") {
       result.push_str(&content[..start_idx]);
       content = &content[start_idx..]; // slice to take unprocessed string
 
-      if let Some(caps) = regex_pattern.captures(content) {
+      if let Some(caps) = ARGS_RE.captures(content) {
         let end = caps.get(0).unwrap().end();
 
         match (caps.get(1), caps.get(2)) {
@@ -115,7 +121,7 @@ impl Skill {
 
         content = &content[end..];
       } else {
-        // Covering case when there is '$' but doesnt match the regex_pattern
+        // Covering case when there is '$' but doesnt match the ARGS_RE
         // This will help to avoid infinite loop
         result.push('$');
         content = &content[1..];
