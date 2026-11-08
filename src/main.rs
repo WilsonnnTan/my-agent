@@ -6,6 +6,7 @@ use my_agent::{
   skill::{skills_advertisement, skill_loader::SkillLoader},
   prompt::parse_prompt,
   agent::Agent,
+  lsp_client::LspClient,
 };
 
 
@@ -19,6 +20,9 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Args::parse();
+
+  // connect to LSP Client
+  LspClient::from_environment()?;
 
   // load config and llm_client using OnceLock so it is only initialized once
   Config::init();

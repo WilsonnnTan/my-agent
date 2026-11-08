@@ -3,11 +3,13 @@ mod write_file;
 mod bash;
 mod invoke_skill;
 mod prelude;
+mod lsp;
 
 use read_file::ReadFile;
 use write_file::WriteFile;
 use bash::Bash;
 use invoke_skill::InvokeSkill;
+use lsp::LSP;
 use anyhow::{Result, bail};
 use serde::Deserialize;
 use serde_json::Value;
@@ -97,6 +99,10 @@ impl ToolCall {
         let tool: InvokeSkill = serde_json::from_str(self.function.arguments.as_str())?;
         tool.run().await
       },
+      ("function", "LSP") => {
+        let tool: LSP = serde_json::from_str(self.function.arguments.as_str())?;
+        tool.run().await
+      },
       _ => { bail!(format!("{} tool doesn't exist in current agent", self.function.name))},
     }
   }
@@ -110,11 +116,12 @@ pub(crate) trait Spec {
 }
 
 /// `TOOLS` contains the list of tools spec exist in this project
-pub(crate) static TOOLS_SPEC: LazyLock<[Value; 4]> = LazyLock::new(|| {
+pub(crate) static TOOLS_SPEC: LazyLock<[Value; 5]> = LazyLock::new(|| {
   [
     ReadFile::spec(),
     WriteFile::spec(),
     Bash::spec(),
     InvokeSkill::spec(),
+    LSP::spec(),
   ]
 });
