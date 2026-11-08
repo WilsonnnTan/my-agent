@@ -4,8 +4,8 @@ use my_agent::{
   config::Config,
   openai::client::LlmClient,
   skill::{skills_advertisement, skill_loader::SkillLoader},
-  tools::response_tool_calls_parser,
   prompt::parse_prompt,
+  agent::Agent,
 };
 
 
@@ -21,10 +21,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Args::parse();
 
   // load config and llm_client using OnceLock so it is only initialized once
-  let global_config = Config::init();
-  let llm_client = LlmClient::init(global_config);
+  Config::init();
+  LlmClient::init();
 
-  // Load skills
+  // Load skills using OnceLock so it is only initialized once
   let skills = SkillLoader::init()?;
   let skills_ad = skills_advertisement(skills);
 
@@ -47,49 +47,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
   ));
 
-  loop {
-    let response: Value = llm_client.chat(&messages).await?;
+  // Run agent loop
+  if let Err(e) = Agent::run_loop(&mut messages).await {
+    eprintln!("Agent failed to run: {}", e);
+    std::process::exit(1);
+  };
 
-    // push AI response to messages to keep track of conversation
-    if let Some(ai_message) = response.pointer("/choices/0/message") {
-      messages.push(ai_message.clone());
-    }
-
-    let tool_calls = response_tool_calls_parser(&response)?;
-
-    // break agent loop if `tool_calls` is empty or `finish_reason` is "stop"
-    if tool_calls.is_empty() || response["choices"][0]["finish_reason"].as_str() == Some("stop") {
-      if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
-        println!("{}", content);
-      }
-      break;
-    }
-
-    for tool_call in tool_calls {
-      let mut tool_message: Value = json!(
-        {
-          "role": "tool",
-        }
-      );
-
-      match tool_call.call() {
-        Ok(output) => {
-          tool_message["content"] = output.into();
-        },
-        Err(e) => {
-          let error_message = format!("failed to call {} tool: {}", tool_call.function.name, e);
-          eprintln!("{}", error_message);
-          tool_message["content"] = error_message.into();
-        },
-      }
-
-      tool_message["tool_call_id"] = tool_call.id.into();
-      messages.push(tool_message);
-    }
-  }
-
-  // UNCOMMENT: for debug
-  // println!("{:#?}", messages);
+  // dbg!(messages);
 
   Ok(())
 }

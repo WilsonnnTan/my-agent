@@ -32,7 +32,9 @@ struct ChatRequest<'a> {
 }
 
 impl LlmClient {
-  pub fn init(config: &'static Config) -> &'static LlmClient {
+  pub fn init() -> &'static LlmClient {
+    let config = Config::init();
+
     LLMCLIENT.get_or_init(|| {
       let open_ai_config = OpenAIConfig::new()
         .with_api_base(&config.base_url)
