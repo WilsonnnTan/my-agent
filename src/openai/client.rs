@@ -1,3 +1,4 @@
+use std::sync::OnceLock;
 use async_openai::{
   Client,
   config::OpenAIConfig
@@ -10,11 +11,14 @@ use crate::{
   tools::TOOLS_SPEC,
 };
 
-pub struct LlmClient<'a> {
+
+static LLMCLIENT: OnceLock<LlmClient> = OnceLock::new();
+
+pub struct LlmClient {
   /// openai client
   client: Client<OpenAIConfig>,
   /// Model name
-  model: &'a str,
+  model: &'static str,
 }
 
 #[derive(Serialize, Debug)]
@@ -27,16 +31,18 @@ struct ChatRequest<'a> {
   tools: &'a [Value],
 }
 
-impl<'a> LlmClient<'a> {
-  pub fn new(config: &'a Config) -> Self {
-    let open_ai_config = OpenAIConfig::new()
-                            .with_api_base(&config.base_url)
-                            .with_api_key(&config.api_key);
+impl LlmClient {
+  pub fn init(config: &'static Config) -> &'static LlmClient {
+    LLMCLIENT.get_or_init(|| {
+      let open_ai_config = OpenAIConfig::new()
+        .with_api_base(&config.base_url)
+        .with_api_key(&config.api_key);
 
-    Self { 
-      client: Client::with_config(open_ai_config),
-      model: &config.model,
-    }
+      LlmClient { 
+        client: Client::with_config(open_ai_config),
+        model: &config.model,
+      }
+    })
   }
 
   pub async fn chat(&self, messages: &Vec<Value>) -> Result<Value>{

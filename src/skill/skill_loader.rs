@@ -1,5 +1,5 @@
 use std::{
-  collections::HashMap, fs::{self, OpenOptions}, io::Read, path::PathBuf,
+  collections::HashMap, fs::{self, OpenOptions}, io::Read, path::PathBuf, sync::OnceLock,
 };
 use anyhow::{
   Result,
@@ -8,12 +8,22 @@ use anyhow::{
 use super::Skill;
 
 
+static SKILLS: OnceLock<HashMap<String, Skill>> = OnceLock::new();
+
 pub struct SkillLoader;
 
 /// Implementation of Skill's Loader
 impl SkillLoader {
+  pub fn init() -> Result<&'static HashMap<String, Skill>> {
+    if let Some(skills) = SKILLS.get() {
+      return Ok(skills);
+    }
+    let skills = Self::load_skills()?;
+    Ok(SKILLS.get_or_init(|| skills))
+  }
+
   /// Search and load skills into memory
-  pub fn load_skills() -> Result<HashMap<String, Skill>> {
+  fn load_skills() -> Result<HashMap<String, Skill>> {
     // this function will help loading skills, and it will merge multiple skill_dir instead of picking one of them
     // search for skill in current dir, such as:
     // - `.agents/skills`
@@ -62,7 +72,7 @@ impl SkillLoader {
 
 
   /// Deserealize skill content into `SKILL` struct
-  pub fn parse_skill<'a>(skill_file: PathBuf, file_content: &'a str) -> Result<Skill> {
+  fn parse_skill<'a>(skill_file: PathBuf, file_content: &'a str) -> Result<Skill> {
     let convention_error = || { anyhow!(
                             "{} doesn't have proper skill format.
     check skill file's convention on: https://agentskills.io/specification",

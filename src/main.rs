@@ -19,14 +19,16 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Args::parse();
-  let config = Config::load();
-  let llm_client = LlmClient::new(&config);
+
+  // load config and llm_client using OnceLock so it is only initialized once
+  let global_config = Config::init();
+  let llm_client = LlmClient::init(global_config);
 
   // Load skills
-  let skills = SkillLoader::load_skills()?;
-  let skills_ad = skills_advertisement(&skills);
+  let skills = SkillLoader::init()?;
+  let skills_ad = skills_advertisement(skills);
 
-  let prompt = parse_prompt(args.prompt, &skills);
+  let prompt = parse_prompt(args.prompt, skills);
 
   // dbg!(&prompt);
 

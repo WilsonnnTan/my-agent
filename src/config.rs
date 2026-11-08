@@ -1,7 +1,8 @@
 use dotenvy::dotenv;
-use std::env;
-use anyhow::Result;
+use std::{env, sync::OnceLock};
 
+
+static CONFIG: OnceLock<Config> = OnceLock::new();
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -14,27 +15,18 @@ pub struct Config {
 }
 
 impl Config {
-  /// Reads configuration from the .env file (not from process environment).
-  ///
+  /// Reads configuration from the .env file (not from process environment)
+  /// and load it globally.
+  /// 
   /// `BASE_URL` and `API_KEY` are required;
   /// `MODEL` (default `anthropic/claude-haiku-4.5`)
-  pub fn load() -> Self {
-    // Loads from .env file
-    let var = Self::load_from_env().unwrap_or_else(|e| {
-      eprintln!("Failed to load environment variables: {}", e);
-      std::process::exit(1);
-    });
-
-    Self {
-      base_url: var.0,
-      api_key: var.1,
-      model: var.2
-    }
+  pub fn init() -> &'static Config {
+    CONFIG.get_or_init(Self::load_from_env)
   }
 
   /// Loads configuration from the .env files (not from process environment).
-  pub fn load_from_env() -> Result<(String, String, String)> {
-    if let Err(_) = dotenv() {}
+  fn load_from_env() -> Self {
+    if let Err(_) = dotenv() {} // ignore if there is no .env file
 
     let base_url = env::var("OPENROUTER_BASE_URL")
                     .unwrap_or_else(|_| {
@@ -51,6 +43,10 @@ impl Config {
     let model = env::var("MODEL")
                     .unwrap_or_else(|_| "anthropic/claude-haiku-4.5".to_string());
     
-    Ok((base_url, api_key, model))
+    Self {
+      base_url,
+      api_key,
+      model
+    }
   }
 }

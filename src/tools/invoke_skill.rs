@@ -15,8 +15,7 @@ pub(crate) struct InvokeSkill<'a> {
 
 impl<'a> Tool for InvokeSkill<'a> {
   fn run(&self) -> Result<String> {
-    // PERF: can be improved by using the global loaded skills instead of reloading here
-    let skills = SkillLoader::load_skills()?;
+    let skills = SkillLoader::init()?;
 
     let args: Vec<&str> = self.args
                             .as_deref()

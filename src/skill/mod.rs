@@ -49,6 +49,8 @@ pub struct Skill {
   pub content: Option<String>,
   /// The file path to the skill file
   pub file_path: Option<PathBuf>,
+  /// The flag for subagent (fork)
+  pub context: Option<String>,
 }
 
 
