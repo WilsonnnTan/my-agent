@@ -16,7 +16,7 @@ pub(crate) struct Bash<'a> {
 }
 
 impl<'a> Tool for Bash<'a> {
-  fn run(&self) -> Result<String> {
+  async fn run(&self) -> Result<String> {
     #[cfg(windows)]
     let (shell, flag) = ("cmd", "/C");
 

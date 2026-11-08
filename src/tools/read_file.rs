@@ -15,7 +15,7 @@ pub(crate) struct ReadFile<'a> {
 }
 
 impl<'a> Tool for ReadFile<'a> {
-  fn run(&self) -> Result<String> {
+  async fn run(&self) -> Result<String> {
     let mut file = OpenOptions::new()
                     .read(true)
                     .open(&*self.file_path)?;

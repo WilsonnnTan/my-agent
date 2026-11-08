@@ -32,7 +32,7 @@ pub fn response_tool_calls_parser(response: &Value) -> Result<Vec<ToolCall>> {
 }
 
 pub(crate) trait Tool {
-  fn run(&self) -> Result<String>;
+  async fn run(&self) -> Result<String>;
 }
 
 /// example tool call json structure:
@@ -79,23 +79,23 @@ impl ToolCall {
     }
   }
 
-  pub fn call(&self) -> Result<String>{
+   pub async fn call(&self) -> Result<String>{
     match (self.r#type.as_str(), self.function.name.as_str()) {
       ("function", "ReadFile") => {
         let tool: ReadFile = serde_json::from_str(self.function.arguments.as_str())?;
-        tool.run()
+        tool.run().await
       },
       ("function", "WriteFile") => {
         let tool: WriteFile = serde_json::from_str(self.function.arguments.as_str())?;
-        tool.run()
+        tool.run().await
       },
       ("function", "Bash") => {
         let tool: Bash = serde_json::from_str(self.function.arguments.as_str())?;
-        tool.run()
+        tool.run().await
       },
       ("function", "InvokeSkill") => {
         let tool: InvokeSkill = serde_json::from_str(self.function.arguments.as_str())?;
-        tool.run()
+        tool.run().await
       },
       _ => { bail!(format!("{} tool doesn't exist in current agent", self.function.name))},
     }

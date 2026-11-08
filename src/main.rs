@@ -48,10 +48,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   ));
 
   // Run agent loop
-  if let Err(e) = Agent::run_loop(&mut messages).await {
-    eprintln!("Agent failed to run: {}", e);
-    std::process::exit(1);
-  };
+  match Agent::run_loop(&mut messages).await {
+    Ok(res) => println!("{}", res),
+    Err(e) => {
+      eprintln!("Agent failed to run: {}", e);
+      std::process::exit(1);
+    }
+  }
 
   // dbg!(messages);
 

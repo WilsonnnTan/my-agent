@@ -19,7 +19,7 @@ pub(crate) struct WriteFile<'a> {
 }
 
 impl<'a> Tool for WriteFile<'a> {
-  fn run(&self) -> Result<String> {
+  async fn run(&self) -> Result<String> {
     let is_exist = Path::new(&*self.file_path).exists();
 
     let mut file = OpenOptions::new()

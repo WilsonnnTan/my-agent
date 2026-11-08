@@ -10,7 +10,7 @@ pub struct Agent;
 
 /// Implementation of loop agent
 impl Agent {
-  pub async fn run_loop(messages: &mut Vec<Value>) -> Result<()> {
+  pub async fn run_loop(messages: &mut Vec<Value>) -> Result<String> {
     let llm_client = LlmClient::init();
 
     loop {
@@ -26,7 +26,7 @@ impl Agent {
       // break agent loop if `tool_calls` is empty or `finish_reason` is "stop"
       if tool_calls.is_empty() || response["choices"][0]["finish_reason"].as_str() == Some("stop") {
         if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
-          println!("{}", content);
+          return Ok(content.to_string()); // return agent final output
         }
         break;
       }
@@ -38,13 +38,13 @@ impl Agent {
           }
         );
 
-        match tool_call.call() {
+        match tool_call.call().await {
           Ok(output) => {
             tool_message["content"] = output.into();
           },
           Err(e) => {
             let error_message = format!("failed to call {} tool: {}", tool_call.function.name, e);
-            eprintln!("{}", error_message);
+            // dbg!(error_message);
             tool_message["content"] = error_message.into();
           },
         }
@@ -54,6 +54,6 @@ impl Agent {
       }
     }
 
-    Ok(())
+    Ok(String::new())
   }
 }

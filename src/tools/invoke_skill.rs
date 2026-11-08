@@ -1,5 +1,5 @@
 use super::prelude::*;
-use crate::skill::skill_loader::SkillLoader;
+use crate::{agent::Agent, skill::skill_loader::SkillLoader};
 
 // use Cow to avoid unnecessary memory allocation
 // Cow also allow mem allocation when the value of the str contains escaped character
@@ -14,7 +14,7 @@ pub(crate) struct InvokeSkill<'a> {
 }
 
 impl<'a> Tool for InvokeSkill<'a> {
-  fn run(&self) -> Result<String> {
+  async fn run(&self) -> Result<String> {
     let skills = SkillLoader::init()?;
 
     let args: Vec<&str> = self.args
@@ -22,10 +22,28 @@ impl<'a> Tool for InvokeSkill<'a> {
                             .map(|s| s.split_whitespace().collect())
                             .unwrap_or_default();
 
-    match skills.get(&*self.name) {
-      None => return Ok(String::from("Skill not found!")),
-      Some(s) => return Ok(s.get_skill_content(&args)),
+    let Some(skill) = skills.get(&*self.name) else {
+      return Ok(String::from("Skill not found!"));
+    };
+
+    let skill_content = skill.get_skill_content(&args);
+
+    // spawn sub-agent
+    if skill.context.as_deref() == Some("fork") {
+      // build message
+      let mut messages: Vec<Value> = vec![
+        json!(
+          {
+            "role": "user",
+            "content": skill_content,
+          }
+        )
+      ];
+      // Run agent loop
+      return Box::pin(Agent::run_loop(&mut messages)).await;
     }
+
+    Ok(skill_content)
   }
 }
 
