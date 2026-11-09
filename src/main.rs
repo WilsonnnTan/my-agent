@@ -1,12 +1,7 @@
 use clap::Parser;
 use serde_json::{Value, json};
 use my_agent::{
-  config::Config,
-  openai::client::LlmClient,
-  skill::{skills_advertisement, skill_loader::SkillLoader},
-  prompt::parse_prompt,
-  agent::Agent,
-  lsp_client::LspClient,
+  agent::Agent, config::Config, lsp_client::{self, LspClient}, openai::client::LlmClient, prompt::parse_prompt, skill::{skill_loader::SkillLoader, skills_advertisement},
 };
 
 
@@ -21,8 +16,13 @@ struct Args {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Args::parse();
 
+  let lsp = LspClient::from_environment()?;
+
   // connect to LSP Client
-  LspClient::from_environment()?;
+  match lsp {
+    Some(_) => eprintln!("LSP client connected"),
+    None => eprintln!("LSP client failed to connect"),
+  };
 
   // load config and llm_client using OnceLock so it is only initialized once
   Config::init();
